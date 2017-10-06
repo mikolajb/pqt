@@ -240,6 +240,16 @@ func (t *Table) AddIndex(columns ...*Column) *Table {
 	return t.AddConstraint(Index(t, columns...))
 }
 
+// AddPartialUniqueIndex ...
+func (t *Table) AddUniqueIndex(columns ...*Column) *Table {
+	return t.AddConstraint(UniqueIndex(t, columns...))
+}
+
+// AddPartialUniqueIndex ...
+func (t *Table) AddPartialUniqueIndex(where string, columns ...*Column) *Table {
+	return t.AddConstraint(PartialUniqueIndex(t, where, columns...))
+}
+
 // SetIfNotExists sets IfNotExists flag.
 func (t *Table) SetIfNotExists(ine bool) *Table {
 	t.IfNotExists = ine

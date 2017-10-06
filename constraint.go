@@ -20,6 +20,8 @@ const (
 	ConstraintTypeForeignKey ConstraintType = "fkey"
 	// ConstraintTypeExclusion ...
 	ConstraintTypeExclusion ConstraintType = "excl"
+	// ConstraintTypeUniqueIndex ...
+	ConstraintTypeUniqueIndex ConstraintType = "uidx"
 )
 
 type ConstraintType string
@@ -150,6 +152,25 @@ func Index(table *Table, columns ...*Column) *Constraint {
 		Type:           ConstraintTypeIndex,
 		PrimaryTable:   table,
 		PrimaryColumns: columns,
+	}
+}
+
+// UniqueIndex ...
+func UniqueIndex(table *Table, columns ...*Column) *Constraint {
+	return &Constraint{
+		Type:           ConstraintTypeUniqueIndex,
+		PrimaryTable:   table,
+		PrimaryColumns: columns,
+	}
+}
+
+// PartialUniqueIndex ...
+func PartialUniqueIndex(table *Table, where string, columns ...*Column) *Constraint {
+	return &Constraint{
+		Type:           ConstraintTypeUniqueIndex,
+		PrimaryTable:   table,
+		PrimaryColumns: columns,
+		Where:          where,
 	}
 }
 
