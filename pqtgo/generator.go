@@ -845,6 +845,11 @@ func (g *Generator) generateRepositoryUpdateOneByUniqueConstraintQuery(w io.Writ
 			method = append(method, c.Name)
 			arguments += fmt.Sprintf("%s %s", g.Formatter.IdentifierPrivate(columnForeignName(c)), g.columnType(c, ModeMandatory))
 		}
+
+		if len(u.Where) > 0 {
+			method = append(method, u.WhereClauseHash())
+		}
+
 		method = append(method, "query")
 
 		fmt.Fprintf(w, `
@@ -899,8 +904,13 @@ func (g *Generator) generateRepositoryUpdateOneByUniqueConstraintQuery(w io.Writ
 		fmt.Fprint(w, `
 		buf.WriteString("`)
 		selectList(w, t, -1)
-		fmt.Fprint(w, `")
+		if len(u.Where) > 0 {
+			fmt.Fprintf(w, ` WHERE %s")
+	}`, u.Where)
+		} else {
+			fmt.Fprint(w, `")
 	}`)
+		}
 		fmt.Fprint(w, `
 		return buf.String(), update.Args(), nil
 	}`)
@@ -923,6 +933,10 @@ func (g *Generator) generateRepositoryUpdateOneByUniqueConstraint(w io.Writer, t
 			method = append(method, c.Name)
 			arguments += fmt.Sprintf("%s %s", g.Formatter.IdentifierPrivate(columnForeignName(c)), g.columnType(c, ModeMandatory))
 			arguments2 += g.Formatter.IdentifierPrivate(columnForeignName(c))
+		}
+
+		if len(u.Where) > 0 {
+			method = append(method, u.WhereClauseHash())
 		}
 
 		fmt.Fprintf(w, `
@@ -1799,6 +1813,10 @@ func (g *Generator) generateRepositoryFindOneByUniqueConstraint(w io.Writer, t *
 			arguments += fmt.Sprintf("%s %s", g.Formatter.IdentifierPrivate(columnForeignName(c)), g.columnType(c, ModeMandatory))
 		}
 
+		if len(u.Where) > 0 {
+			method = append(method, u.WhereClauseHash())
+		}
+
 		fmt.Fprintf(w, `
 			func (r *%sRepositoryBase) %s(ctx context.Context, %s) (*%sEntity, error) {`,
 			entityName,
@@ -1818,11 +1836,17 @@ func (g *Generator) generateRepositoryFindOneByUniqueConstraint(w io.Writer, t *
 			find.WriteString(strings.Join(r.%s, ", "))
 		}`, g.Formatter.Identifier("columns"))
 
+		partialClause := ""
+		if len(u.Where) > 0 {
+			partialClause = fmt.Sprintf("%s AND ", u.Where)
+		}
+
 		fmt.Fprintf(w, `
 			find.WriteString(" FROM ")
 			find.WriteString(%s)
-			find.WriteString(" WHERE ")`,
+			find.WriteString(" WHERE %s")`,
 			g.Formatter.Identifier("table", t.Name),
+			partialClause,
 		)
 		for i, c := range u.PrimaryColumns {
 			if i != 0 {
@@ -2569,7 +2593,7 @@ func (c *Composer) Args() []interface{} {
 func (g *Generator) uniqueConstraints(t *pqt.Table) []*pqt.Constraint {
 	var unique []*pqt.Constraint
 	for _, c := range t.Constraints {
-		if c.Type == pqt.ConstraintTypeUnique {
+		if c.Type == pqt.ConstraintTypeUnique || c.Type == pqt.ConstraintTypeUniqueIndex {
 			unique = append(unique, c)
 		}
 	}

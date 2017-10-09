@@ -68,15 +68,19 @@ func (c *Constraint) Name() string {
 	}
 
 	if len(c.Where) > 0 {
-		sum := md5.Sum([]byte(c.Where))
-		encoded := base64.StdEncoding.EncodeToString(sum[:])
-		if len(encoded) > 8 {
-			encoded = encoded[:8]
-		}
-		tmp = append(tmp, encoded)
+		tmp = append(tmp, c.WhereClauseHash())
 	}
 
 	return fmt.Sprintf("%s.%s_%s_%s", schema, c.PrimaryTable.ShortName, strings.Join(tmp, "_"), c.Type)
+}
+
+func (c *Constraint) WhereClauseHash() string {
+	sum := md5.Sum([]byte(c.Where))
+	encoded := base64.StdEncoding.EncodeToString(sum[:])
+	if len(encoded) > 8 {
+		encoded = encoded[:8]
+	}
+	return encoded
 }
 
 // Unique constraint ensure that the data contained in a column or a group of columns is unique with respect to all the rows in the table.
