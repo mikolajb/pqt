@@ -2,6 +2,7 @@ package pqt
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -63,6 +64,12 @@ func (c *Constraint) Name() string {
 			continue
 		}
 		tmp = append(tmp, col.Name)
+	}
+
+	if len(c.Where) > 0 {
+		tmp = append(tmp, "WHERE")
+		reg := regexp.MustCompile("([a-zA-Z0-9]+)")
+		tmp = append(tmp, reg.FindAllString(c.Where, 16)...)
 	}
 
 	return fmt.Sprintf("%s.%s_%s_%s", schema, c.PrimaryTable.ShortName, strings.Join(tmp, "_"), c.Type)

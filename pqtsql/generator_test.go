@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS table_name (
 	CONSTRAINT "public.table_name_start_at_end_at_check" CHECK ((start_at IS NULL AND end_at IS NULL) OR start_at < end_at)
 );
 CREATE INDEX "public.table_name_start_at_idx" ON table_name (start_at);
-CREATE UNIQUE INDEX "public.table_name_one_two_uidx" ON table_name (one,two) WHERE one IS NOT NULL AND two IS NULL;
+CREATE UNIQUE INDEX "public.table_name_one_two_WHERE_one_IS_NOT_NULL_AND_two_IS_NULL_AND_one_2_uidx" ON table_name (one,two) WHERE one IS NOT NULL AND two IS NULL AND one > 2;
 
 `,
 			given: func() *pqt.Table {
@@ -90,7 +90,7 @@ CREATE UNIQUE INDEX "public.table_name_one_two_uidx" ON table_name (one,two) WHE
 					AddCheck("(start_at IS NULL AND end_at IS NULL) OR start_at < end_at", startAt, endAt).
 					AddColumn(one).
 					AddColumn(two).
-					AddPartialUniqueIndex("one IS NOT NULL AND two IS NULL", one, two)
+					AddPartialUniqueIndex("one IS NOT NULL AND two IS NULL AND one > 2", one, two)
 			}(),
 		},
 	}
