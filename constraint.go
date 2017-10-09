@@ -1,8 +1,9 @@
 package pqt
 
 import (
+	"crypto/md5"
+	"encoding/base64"
 	"fmt"
-	"regexp"
 	"strings"
 )
 
@@ -67,9 +68,12 @@ func (c *Constraint) Name() string {
 	}
 
 	if len(c.Where) > 0 {
-		tmp = append(tmp, "WHERE")
-		reg := regexp.MustCompile("([a-zA-Z0-9]+)")
-		tmp = append(tmp, reg.FindAllString(c.Where, 16)...)
+		sum := md5.Sum([]byte(c.Where))
+		encoded := base64.StdEncoding.EncodeToString(sum[:])
+		if len(encoded) > 8 {
+			encoded = encoded[:8]
+		}
+		tmp = append(tmp, encoded)
 	}
 
 	return fmt.Sprintf("%s.%s_%s_%s", schema, c.PrimaryTable.ShortName, strings.Join(tmp, "_"), c.Type)
